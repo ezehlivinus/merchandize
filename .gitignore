@@ -1,0 +1,4 @@
+db.sqlite3
+merchandize/__pycache__/
+*/__pycache__
+bookkeeper/migrations/*__pycache__
