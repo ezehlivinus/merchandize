@@ -1,7 +1,32 @@
 from django.contrib.auth.models import User
 
 from rest_framework import serializers
-from .models import Customer, Product, Category, Brand, Company, PurchaseBook, SalesBook
+from .models import (
+    Bill, Customer, Product, Category,
+    Brand, Company, PurchaseBook,
+    Purchases, SalesBook, Supplier
+)
+
+
+class BillSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Bill 
+        fields = '__all__'
+
+
+class SupplierSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Supplier
+        fields = '__all__'
+
+
+class PurchasesSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Purchases
+        fields = '__all__'
 
 
 class CustomerSerializer(serializers.ModelSerializer):
