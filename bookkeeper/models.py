@@ -62,7 +62,7 @@ class Inventory(models.Model):
 
 class Bill(models.Model):
     '''
-    This describes a bill or an Invoice
+    This describes a bill or an Invoice from a supplier
     \n
     Bill has a single PurchaseBook
     '''
@@ -75,13 +75,13 @@ class Bill(models.Model):
 
 
 class PurchaseBook(models.Model):
-    '''
+    ''' 
     This decsribes a purchase: a record of an item (to be resale) bought from a supplier on credit
     PurchaseBook belong_to a bill
     A purchase has 0:many items/products
     Purchases source documents: Stock-In
     '''
-    bill = models.ForeignKey(Bill, on_delete=models.CASCADE)
+    bill = models.ForeignKey(Bill, related_name='purchase_books', on_delete=models.CASCADE)
     # invoice = models.CharField(max_length=50)
     # date = models.DateField(auto_now_add=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -95,15 +95,15 @@ class PurchaseBook(models.Model):
 
 class Purchases(models.Model):
     '''
+    For now this serves as a ledger:
     This describes totals/sundries of a purchaseBook for a particular Bill(PurchaseBook items)
     Detail of the bill is as described in Bill
     
     debit: sum of purchaseBook.amount on this date debited for this buyer/business
     This Purchases is used as PurchaseLegder: that holds individual supplier account 
     '''
-    bill = models.ForeignKey(Bill, on_delete=models.CASCADE)
-    # invoice = models.CharField(max_length=50)
-    date = models.DateField(auto_now_add=True)
+    bill = models.ForeignKey(Bill, related_name='purchases', on_delete=models.CASCADE)
+    # Debit: (business) and Credit: customer accounts
     debit = models.PositiveIntegerField(help_text='Debited from a buyer')
     credit = models.PositiveIntegerField(default=0, help_text='Credited to a supplier')
 
@@ -124,27 +124,52 @@ class PurchasesLedger(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class Invoice(models.Model):
+    '''
+    This describes an Invoice issued to customers
+    \n
+    Invoice has a single SalesBook
+    '''
+    # business = models.ForeignKey('Business', on_delete=models.CASCADE)
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    number = models.CharField(max_length=50, help_text='Enter the bill/invoice number')
+    date = models.DateField(auto_now_add=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class SalesBook(models.Model):
     '''
     This describes a sale: record of credit sales to customer
     Defines Point of Sale : Sales source documents - invoice
     '''
-    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0, help_text='This is the quantity sold')
     price = models.PositiveIntegerField(default=0, help_text='This is the selling')
     amount = models.PositiveIntegerField(default=0)
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
-# class PurchaseBook(models.Model):
+class Sales(models.Model):
+    '''This describes a sundries of sales: and should serve as SalesLedger'''
 
-#     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
-#     total = models.PositiveIntegerField(default=0)
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
+    debit = models.PositiveIntegerField(default=0, help_text='Debited from this customer')
+    credit = models.PositiveIntegerField(help_text='Credited to this business')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Sales'
 
 
-class Company(models.Model):
-    '''This describes a company (business)'''
+class Business(models.Model):
+    '''This describes a business (business)'''
     name = models.CharField(max_length=200)
     description = models.CharField(null=True, max_length=50)
     address = models.CharField(max_length=50)
@@ -152,14 +177,6 @@ class Company(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name_plural = 'Companies'
-
-
-class Sale(models.Model):
-    '''This describes a sale: an item sold to a customer'''
-    pass
 
 
 class Customer(models.Model):
@@ -192,7 +209,7 @@ class Customer(models.Model):
 
 
 class Supplier(models.Model):
-    '''This describes a supplier: one whom a company buys products from'''
+    '''This describes a supplier: one whom a business buys products from'''
     name = models.CharField(max_length=50)
     description = models.CharField(null=True, max_length=50)
 

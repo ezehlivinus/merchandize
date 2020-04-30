@@ -2,16 +2,16 @@ from django.contrib.auth.models import User
 
 from rest_framework import serializers
 from .models import (
-    Bill, Customer, Product, Category,
-    Brand, Company, PurchaseBook,
-    Purchases, SalesBook, Supplier
+    Bill, Customer, Invoice, Product, Category,
+    Brand, Business, PurchaseBook,
+    Purchases, Sales, SalesBook, Supplier
 )
 
 
-class BillSerializer(serializers.ModelSerializer):
-
+class InvoiceSerializer(serializers.ModelSerializer):
+    
     class Meta:
-        model = Bill 
+        model = Invoice
         fields = '__all__'
 
 
@@ -43,6 +43,13 @@ class SalesBookSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class SalesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Sales
+        fields = '__all__'
+
+
 class PurchaseBookSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -50,10 +57,19 @@ class PurchaseBookSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CompanySerializer(serializers.ModelSerializer):
+class BillSerializer(serializers.ModelSerializer):
+    purchase_books = PurchaseBookSerializer(many=True, read_only=True)
+    purchases = PurchasesSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Bill 
+        fields = '__all__'
+
+
+class BusinessSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Company
+        model = Business
         fields = '__all__'
 
 

@@ -8,9 +8,21 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import BillSerializer, BrandSerializer, CategorySerializer, CompanySerializer, CustomerSerializer, PurchaseBookSerializer, PurchasesSerializer, SalesBookSerializer, SupplierSerializer, UserSerializer, ProductSerializer
+from .serializers import BillSerializer, BrandSerializer, CategorySerializer, BusinessSerializer, CustomerSerializer, InvoiceSerializer, PurchaseBookSerializer, PurchasesSerializer, SalesBookSerializer, SalesSerializer, SupplierSerializer, UserSerializer, ProductSerializer
 
-from .models import Bill, Company, Customer, Product, Brand, Category, PurchaseBook, SalesBook, Supplier
+from .models import Bill, Business, Customer, Invoice, Product, Brand, Category, PurchaseBook, Purchases, Sales, SalesBook, Supplier
+
+
+
+class SalesViewSet(viewsets.ModelViewSet):
+    queryset = Sales.objects.all()
+    serializer_class = SalesSerializer
+
+
+class InvoiceViewSet(viewsets.ModelViewSet):
+    queryset = Invoice.objects.all()
+    serializer_class = InvoiceSerializer
+
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -27,9 +39,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
 
 
-class CompanyViewSet(viewsets.ModelViewSet):
-    queryset = Company.objects.all()
-    serializer_class = CompanySerializer
+class BusinessViewSet(viewsets.ModelViewSet):
+    queryset = Business.objects.all()
+    serializer_class = BusinessSerializer
 
 
 # class PurchaseBookViewSet(viewsets.ModelViewSet):
@@ -37,7 +49,7 @@ class CompanyViewSet(viewsets.ModelViewSet):
 #     serializer_class = PurchaseBookSerializer
     
 
-class BillViewSet(generics.ListCreateAPIView):
+class BillViewSet(viewsets.ModelViewSet):
     queryset = Bill.objects.all()
     serializer_class = BillSerializer
 
@@ -50,76 +62,52 @@ class BillViewSet(generics.ListCreateAPIView):
         else:
             return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
 
-        return super().post(request, *args, **kwargs)
+        # return super().post(request, *args, **kwargs)
 
 
-class CreatePurchaseBook(generics.ListCreateAPIView ):
+class PurchaseBookList(generics.ListCreateAPIView):
     '''
-    Purchase Book endpoint to allow the list and create of a Purchase
-    In the future: This will support multiple/bulk operation
-    A single purchase/invoice can have many 
-    Summation of amount is/should be done at the frontend credit/debit
+    \n
+    Use this endpoint to list or create of a Purchase\n
+    In the future: This will support multiple/bulk operation\n\n
+    A single purchase/invoice can have many purchase book\n
+    Summation of amount is/should be done at the frontend credit/debit for purchases endpoint
+    \n
     '''
     queryset = PurchaseBook.objects.all()
     serializer_class = PurchaseBookSerializer
 
-    def post(self, request, *args, **kwargs):
-        # create a bill
-        bill = BillViewSet.post(BillViewSet, request, *args, **kwargs)
 
-        data = {
-            'bill': bill.get('id'),
-            **request.data.get('purchase_book'),
-        }
-
-        serializer = PurchaseBookSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            # we may want to revert changes to create bill if this is the first time of creating bill
-                # Can be done later
-                
-            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
-
-        # create purchases
-        # return CreatePurchases.post(CreatePurchases, request, purchase_book)
-        
-        return purchase_book
+class PurchaseBookDetail(generics.RetrieveUpdateDestroyAPIView):
+    '''
+    Endpoint that allow: update, detail, and delete of self resource
+    '''
+    queryset = PurchaseBook.objects.all()
+    serializer_class = PurchaseBookSerializer
+    
                                                 
-# import requests
-class CreatePurchases(generics.ListCreateAPIView):
+class PurchasesList(generics.ListCreateAPIView):
     '''
     A purchases has many purchaseBook/Legder
     There is alway a single purchase/record for a PurchaseBook
     This is records sum(amount) of the items in a single PurchaseBook/Invoice
     '''
+    queryset = Purchases.objects.all()
     serializer_class = PurchasesSerializer
 
-    def post(self, request, purchase_book):
-        purchase_book = purchase_book.data
-        purchases = request.data
 
-        data = {
-            'particular': purchase_book.get('supplier'),
-            'invoice': purchase_book.get('invoice'),
-            'date': purchases.get('date'),
-            # This values should be send from form by the client
-            'debit': purchases.get('total', 0),
-            'credit': purchases.get('total', 0)
-        }
-
-        serializer = PurchasesSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+class PurchasesDetail(generics.RetrieveUpdateDestroyAPIView):
+    '''
+    Endpoint that allow: update, detail, and delete of self resource
+    '''
+    queryset = Purchases.objects.all()
+    serializer_class = PurchasesSerializer
 
 
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.all()
     serializer_class = SupplierSerializer
+
 
 class SalesBookViewSet(viewsets.ModelViewSet):
     queryset = SalesBook.objects.all()
