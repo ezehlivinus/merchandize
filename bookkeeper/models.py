@@ -148,14 +148,19 @@ class SalesBook(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0, help_text='This is the quantity sold')
     price = models.PositiveIntegerField(default=0, help_text='This is the selling')
-    amount = models.PositiveIntegerField(default=0)
+    amount = models.PositiveIntegerField(default=0) 
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class Sales(models.Model):
-    '''This describes a sundries of sales: and should serve as SalesLedger'''
+    '''
+    This describes a sundries of sales: and should serve as a SalesLedger
+    
+    \n
+    all records.amounts at the frontend are sum to be: sales.debit, sale.credit with little or no modification
+    '''
 
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE)
     debit = models.PositiveIntegerField(default=0, help_text='Debited from this customer')
